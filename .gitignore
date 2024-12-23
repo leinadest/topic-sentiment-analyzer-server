@@ -1,0 +1,42 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+env/
+venv/
+*.env
+*.venv
+.venv/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# FastAPI / Uvicorn / ASGI
+*.log
+*.sock
+*.pid
+
+# Model files (if they are large and can be recreated)
+*.pkl
+*.h5
+*.joblib
+
+# Data files (if large or not needed for version control)
+*.csv
+*.json
+*.sqlite
+*.xls
+*.xlsx
+
+# Docker related files
+docker-compose.override.yml
+
+# VS Code settings (optional)
+.vscode/
+
+# MacOS related files
+.DS_Store
+
+# Windows related files
+Thumbs.db
