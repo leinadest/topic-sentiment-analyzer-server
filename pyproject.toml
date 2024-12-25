@@ -23,7 +23,7 @@ gcloud-rest-storage = "^9.3.0"
 ipykernel = "^6.29.5"
 flake8 = "^7.1.1"
 isort = "^5.13.2"
-black = "^24.10.0"
+black = {extras = ["jupyter"], version = "^24.10.0"}
 ipython = "^8.31.0"
 matplotlib = "^3.10.0"
 seaborn = "^0.13.2"
@@ -32,6 +32,7 @@ pre-commit = "^4.0.1"
 pytest = "^8.3.4"
 pytest-asyncio = "^0.25.0"
 pytest-dotenv = "^0.5.2"
+flake8-pyproject = "^1.2.3"
 
 [build-system]
 requires = ["poetry-core"]
@@ -46,6 +47,12 @@ skip-string-normalization = true
 multi_line_output = 3
 length_sort = true
 skip_gitignore = true
+include_trailing_comma = true
+
+[tool.flake8]
+extend-exclude = [".git", ".venv", "__pycache__", "*.ipynb"]
+max-line-length = 88
+count = true
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

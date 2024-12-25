@@ -1,4 +1,5 @@
 import re
+import json
 
 import spacy
 import pandas as pd
@@ -12,225 +13,15 @@ URL_PATTERN = r'http[s]?://\S+|www\.\S+'
 MENTION_PATTERN = r'@\w+'
 HASHTAG_PATTERN = r'#\w+'
 
-# Slang translations
-slang_dict = {
-    'lol': 'amused',
-    'lmao': 'hilarious',
-    'rofl': 'rolling_on_floor_laughing',
-    'omg': 'surprised',
-    'brb': 'temporarily_away',
-    'wtf': 'confused',
-    'fml': 'frustrated',
-    'smh': 'disbelief',
-    'omfg': 'extremely_surprised',
-    'idk': 'unsure',
-    'tbh': 'honestly',
-    'sus': 'suspicious',
-    'bruh': 'exasperated',
-    'noob': 'inexperienced',
-    'simp': 'overly_adoring',
-    'tldr': 'summary',
-    'fomo': 'fear_of_missing_out',
-    'yta': 'you_are_the_asshole',
-    'nta': 'not_the_asshole',
-    'nvm': 'forget_it',
-    'gg': 'good_game',
-    'cya': 'goodbye',
-    'lmfao': 'laughing_my_ass_off',
-    'tifu': 'today_i_fucked_up',
-    'wbu': 'what_about_you',
-    'ty': 'thank_you',
-    'yw': 'you_are_welcome',
-    'iama': 'i_am_a',
-    'eli5': 'explain_like_im_5',
-    'ftw': 'for_the_win',
-    'fyi': 'for_your_information',
-    'np': 'no_problem',
-    'wb': 'welcome_back',
-    'lit': 'exciting',
-    'fam': 'friend',
-    'stan': 'extremely_support',
-    'savage': 'bold_and_ruthless',
-    'cap': 'lie_or_false',
-    'no cap': 'honestly',
-    'lmk': 'let_me_know',
-    'sksksk': 'excited_or_sentimental_laughter',
-    'stfu': 'shut_up',
-    'lowkey': 'slightly',
-    'highkey': 'very',
-    'yeet': 'throw_or_discard',
-    'af': 'as_fuck',
-    'deadass': 'seriously',
-    'ppl': 'people',
-    'imo': 'in_my_opinion',
-    'wdym': 'what_do_you_mean',
-    'kys': 'kill_yourself',
-    'kms': 'kill_myself',
-}
-
-# Symbol translations
-symbol_dict = {
-    ':)': 'happy',
-    ':-)': 'happy',
-    ':D': 'happy',
-    ':-D': 'happy',
-    ':P': 'happy',
-    ':-P': 'happy',
-    ':]': 'happy',
-    ':-]': 'happy',
-    ':3': 'happy',
-    ':^)': 'happy',
-    ':(': 'sad',
-    ':-(': 'sad',
-    'D:': 'sad',
-    ':-C': 'sad',
-    'T_T': 'sad',
-    ":'(": 'sad',
-    ':|': 'neutral',
-    ':o': 'neutral',
-    ':-o': 'neutral',
-    'O:': 'neutral',
-    'O:-': 'neutral',
-    '^_^': 'happy',
-    '>:(': 'angry',
-    '>:-(': 'angry',
-    ':X': 'angry',
-    ':@': 'angry',
-    ':-|': 'neutral',
-    ':/': 'neutral',
-    ':\\': 'neutral',
-    ':-/': 'neutral',
-    ';-)': 'playful',
-    ';P': 'playful',
-    ':*': 'love',
-    '<3': 'love',
-    '/s': 'satire',
-    '/jk': 'just_kidding',
-}
-
-# Emoji translations
-emoji_dict = {
-    '😢': 'sad',
-    '😊': 'happy',
-    '❤️': 'love',
-    '😂': 'laugh',
-    '😡': 'angry',
-    '😱': 'scared',
-    '😔': 'sad',
-    '😓': 'sad',
-    '😞': 'sad',
-    '😜': 'playful',
-    '😎': 'cool',
-    '😒': 'angry',
-    '😃': 'happy',
-    '🤔': 'neutral',
-    '😌': 'happy',
-    '🥺': 'sad',
-    '😇': 'neutral',
-    '😍': 'love',
-    '🥰': 'love',
-    '🙃': 'playful',
-    '😔': 'sad',
-    '😳': 'embarrassed',
-    '😅': 'happy',
-    '😵': 'scared',
-    '😋': 'happy',
-    '😤': 'angry',
-    '💀': 'laugh',
-    '🥳': 'happy',
-    '🤗': 'happy',
-    '🤩': 'happy',
-}
-
-# Stopwords to retain as they contribute sentiment information
-stopword_exceptions = {
-    'not',
-    'very',
-    'really',
-    'too',
-    'just',
-    'even',
-    'so',
-    'still',
-    'quite',
-    'always',
-    'never',
-    'sometimes',
-    'more',
-    'less',
-    'almost',
-    'kinda',
-    'sorta',
-    'meh',
-    'yet',
-    'really',
-    'always',
-}
-
-# Punctuation to retain as they contribute sentiment information
-punctuation_exceptions = {'!', '?', '.'}
-
-# N-grams to include as features
-important_ngrams = {
-    'nice',
-    'cringe',
-    'awful',
-    'watching',
-    'great',
-    'sad',
-    'worst',
-    'stop',
-    'thanks',
-    'you for',
-    'horrible',
-    'scared',
-    'about it',
-    'worry',
-    'haha',
-    'unfortunately',
-    'sorry for',
-    'terrible',
-    'lol',
-    'hope',
-    'shit',
-    'the fuck',
-    'glad',
-    'thank',
-    'love',
-    'miss',
-    'crying',
-    'missed',
-    'sorry',
-    'amazing',
-    'so sorry',
-    'appreciate',
-    'imagine',
-    'lost',
-    'funny',
-    'cool',
-    'weird',
-    'stupid',
-    'love this',
-    'hate',
-    'fuck',
-    'happy',
-    'fucking',
-    'good',
-    'afraid',
-    'bad',
-    'thank you',
-    'awesome',
-    'the worst',
-    'die',
-    'hurt',
-    'love it',
-    'thanks for',
-    'poor',
-    'feel',
-    'disgusting',
-}
-
-### PREPROCESSORS ###
+# Load preprocessing parameters
+with open('data/preprocessing_parameters.json', 'r') as stream:
+    params = json.load(stream)
+    slang_dict = params['slang_dict']
+    symbol_dict = params['symbol_dict']
+    emoji_dict = params['emoji_dict']
+    stopword_exceptions = params['stopword_exceptions']
+    punctuation_exceptions = params['punctuation_exceptions']
+    important_ngrams = params['important_ngrams']
 
 
 class BasePreprocessor(BaseEstimator, TransformerMixin):
@@ -259,12 +50,16 @@ class Tokenizer(BasePreprocessor):
     '''An sklearn transformer that tokenizes and processes text.'''
 
     def __init__(self, exceptions=None):
-        self.exceptions = exceptions or stopword_exceptions.union(punctuation_exceptions)
+        self.exceptions = exceptions or stopword_exceptions.union(
+            punctuation_exceptions
+        )
         self.nlp = spacy.load('en_core_web_lg')  # Pre-trained English model
 
     def transform(self, X):
         '''Tokenize a pandas series of strings.'''
-        token_docs = self.nlp.pipe(X['text'], disable=["ner", "parser", "tok2vec"], batch_size=1000)
+        token_docs = self.nlp.pipe(
+            X['text'], disable=["ner", "parser", "tok2vec"], batch_size=1000
+        )
         X['tokens'] = [self._process_tokens(doc) for doc in token_docs]
         return X
 
@@ -293,13 +88,17 @@ class FeatureEngineer(BasePreprocessor):
         X['comment_short'] = X['text'].apply(len).lt(50).astype('int8')
         X['comment_long'] = X['text'].apply(len).gt(100).astype('int8')
         X['exclamation_mark_count'] = X['text'].str.count('!')
-        X['question_mark_count'] = X['text'].str.count('\?')
+        X['question_mark_count'] = X['text'].str.count(r'\?')
         X['masked_period_count'] = X['text'].str.count('.').sub(2).clip(0)
         X['double_dot_count'] = X['text'].str.count('..')
         X['quotation_count'] = X['text'].str.count('""')
         X['masked_uppercase_count'] = (
             X['text']
-            .apply(lambda comment: sum(1 for c in self._remove_artifacts(comment) if c.isupper()))
+            .apply(
+                lambda comment: sum(
+                    1 for c in self._remove_artifacts(comment) if c.isupper()
+                )
+            )
             .sub(6)
             .clip(0)
         )
@@ -308,7 +107,15 @@ class FeatureEngineer(BasePreprocessor):
         return X
 
     def _remove_artifacts(self, comment):
-        artifacts = {'[T]', '[ALL]', '[NAME]', '[RELIGION]', '<URL>', '<USER>', '<HASHTAG>'}
+        artifacts = {
+            '[T]',
+            '[ALL]',
+            '[NAME]',
+            '[RELIGION]',
+            '<URL>',
+            '<USER>',
+            '<HASHTAG>',
+        }
         for artifact in artifacts:
             comment = comment.replace(artifact, '')
         return comment
@@ -325,7 +132,9 @@ class FeatureEngineer(BasePreprocessor):
         vectorizer = CountVectorizer(ngram_range=(1, 2), vocabulary=self.ngrams)
         ngrams_csrm = vectorizer.fit_transform(X['text'])
         ngram_names = ['ngram_' + ngram for ngram in vectorizer.get_feature_names_out()]
-        ngrams_df = pd.DataFrame(ngrams_csrm.toarray(), index=X.index, columns=ngram_names)
+        ngrams_df = pd.DataFrame(
+            ngrams_csrm.toarray(), index=X.index, columns=ngram_names
+        )
         return pd.concat([X, ngrams_df], axis=1)
 
 
@@ -353,7 +162,9 @@ class TfidfTransformer(BasePreprocessor):
         tfidf_matrix = self.tfidf_vectorizer.transform(X['tokens'])
         tokens = self.tfidf_vectorizer.get_feature_names_out()
         tokens = ['tfidf_' + token for token in tokens]
-        tfidf_df = pd.DataFrame.sparse.from_spmatrix(tfidf_matrix, columns=tokens, index=X.index)
+        tfidf_df = pd.DataFrame.sparse.from_spmatrix(
+            tfidf_matrix, columns=tokens, index=X.index
+        )
         return pd.concat([X, tfidf_df], axis=1)
 
 
@@ -378,7 +189,9 @@ class Scaler(BasePreprocessor):
 
     def transform(self, X):
         scaled_data = self.scaler.transform(X[self.unscaled_features])
-        X_scaled = pd.DataFrame(scaled_data, index=X.index, columns=self.unscaled_features)
+        X_scaled = pd.DataFrame(
+            scaled_data, index=X.index, columns=self.unscaled_features
+        )
         X_scaled = pd.concat([X.drop(self.unscaled_features, axis=1), X_scaled], axis=1)
         return X_scaled
 
@@ -388,7 +201,9 @@ class Cleaner(BasePreprocessor):
 
     def transform(self, X):
         '''Drop temporary features and compress features.'''
-        X_clean = X.drop(['text', 'tokens', 'processed_tokens'], axis=1, errors='ignore')
+        X_clean = X.drop(
+            ['text', 'tokens', 'processed_tokens'], axis=1, errors='ignore'
+        )
         X_clean.columns = X_clean.columns.astype(str)
         X_csrm = csr_matrix(X_clean)
         return X_csrm

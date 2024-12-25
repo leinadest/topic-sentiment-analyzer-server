@@ -1,20 +1,26 @@
 import os
-import pytest
-import pandas as pd
 
-from app.model.ml_model import download_model, load_model
+import pandas as pd
+import pytest
+
 import app.model.preprocessors as prep
+from app.model.ml_model import load_model, download_model
+
 
 @pytest.fixture()
 def setup_cleanup(monkeypatch):
     # Set up preprocessors in test environment
-    monkeypatch.setattr('__main__.RedditTextCleaner', prep.RedditTextCleaner, raising=False)
+    monkeypatch.setattr(
+        '__main__.RedditTextCleaner', prep.RedditTextCleaner, raising=False
+    )
     monkeypatch.setattr('__main__.Tokenizer', prep.Tokenizer, raising=False)
     monkeypatch.setattr('__main__.FeatureEngineer', prep.FeatureEngineer, raising=False)
-    monkeypatch.setattr('__main__.TfidfTransformer', prep.TfidfTransformer, raising=False)
+    monkeypatch.setattr(
+        '__main__.TfidfTransformer', prep.TfidfTransformer, raising=False
+    )
     monkeypatch.setattr('__main__.Scaler', prep.Scaler, raising=False)
     monkeypatch.setattr('__main__.Cleaner', prep.Cleaner, raising=False)
-    
+
     # Set up test environment
     bucket_name = 'leinadest-mlflow-artifacts-store'
     model_path = 'smsa_svc.tar.gz'
@@ -26,6 +32,7 @@ def setup_cleanup(monkeypatch):
     # Clean up downloads
     os.remove(local_path)
     os.remove(local_path.replace('.tar.gz', '.joblib'))
+
 
 @pytest.mark.asyncio
 async def test_load_model(setup_cleanup):
