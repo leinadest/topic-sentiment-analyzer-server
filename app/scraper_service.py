@@ -11,7 +11,9 @@ class ScraperService:
         query = query.lower()
 
         subreddit = await self.reddit.subreddit('all')
-        submissions_listing = subreddit.search(query=query, sort='top', time_filter=time_filter)
+        submissions_listing = subreddit.search(
+            query=query, sort='top', time_filter=time_filter
+        )
 
         return submissions_listing
 
@@ -35,5 +37,8 @@ class ScraperService:
 
         return comments, count
 
-    async def close(self):
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.reddit.close()

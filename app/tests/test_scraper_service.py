@@ -1,6 +1,6 @@
 import pytest
 
-from app.config import *
+from app.config import settings
 from app.scraper_service import ScraperService
 
 
@@ -9,9 +9,13 @@ async def test_get_comments():
     query = 'apple'
     time = 'week'
 
-    scraper_service = ScraperService(CLIENT_ID, CLIENT_SECRET, USER_AGENT)
-    comments, submission_count = await scraper_service.get_comments(query, time)
-    await scraper_service.close()
+    scraper_service = ScraperService(
+        settings.reddit_client_id,
+        settings.reddit_client_secret,
+        settings.reddit_user_agent,
+    )
+    async with scraper_service:
+        comments, submission_count = await scraper_service.get_comments(query, time)
 
     assert submission_count > 0
     assert len(comments) > 0

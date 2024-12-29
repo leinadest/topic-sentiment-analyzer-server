@@ -1,10 +1,7 @@
-import os
-
-import pandas as pd
 import pytest
 
-import app.model.preprocessors as prep
-from app.model.ml_model import load_model, download_model
+import app.pipeline.preprocessors as prep
+from app.pipeline.ml_pipeline import Pipeline
 
 
 @pytest.fixture()
@@ -29,18 +26,17 @@ def setup_cleanup(monkeypatch):
     # Run test
     yield bucket_name, model_path, local_path
 
-    # Clean up downloads
-    os.remove(local_path)
-    os.remove(local_path.replace('.tar.gz', '.joblib'))
-
 
 @pytest.mark.asyncio
 async def test_load_model(setup_cleanup):
     bucket_name, model_path, local_path = setup_cleanup
-    test_data = pd.DataFrame({'text': ['I love this movie!']})
+    X_test = ['I love this movie!']
+    y_test = ['happy']
 
-    await download_model(bucket_name, model_path, local_path)
-    model = load_model(local_path)
-    prediction = model.predict(test_data)
+    pipeline = Pipeline()
+    await pipeline.download(bucket_name, model_path, local_path)
+    pipeline.load()
 
-    assert prediction[0] == 0
+    y_pred = pipeline.predict(X_test)
+
+    assert y_pred == y_test

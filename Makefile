@@ -15,3 +15,6 @@ quality_checks:
 
 test:
 	poetry run pytest
+
+dev:
+	poetry run fastapi dev app/main.py
