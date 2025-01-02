@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "smsa-server"
+name = "topic-sentiment-analyzer-server"
 version = "0.1.0"
 description = ""
 authors = ["Daniel Tse <daniel.tse1211@gmail.com>"]
@@ -15,10 +15,9 @@ scikit-learn = "^1.6.0"
 spacy = "^3.8.3"
 joblib = "^1.4.2"
 asyncpraw = "^7.8.1"
-gcloud-aio-storage = "^9.3.0"
-gcloud-rest-storage = "^9.3.0"
 fastapi = {extras = ["standard"], version = "^0.115.6"}
 pydantic-settings = "^2.7.0"
+google-cloud-storage = "^2.19.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

@@ -23,7 +23,7 @@ venv/
 *.joblib
 
 # Data files (if large or not needed for version control)
-/data
+data/
 *.csv
 *.sqlite
 *.xls

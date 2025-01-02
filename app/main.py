@@ -1,18 +1,20 @@
+import os
 from enum import Enum
 from contextlib import asynccontextmanager
 from unittest.mock import patch
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 import app.pipeline.preprocessors as prep
 from app.config import settings
 from app.scraper_service import ScraperService
-from app.pipeline.ml_pipeline import Pipeline
+from app.pipeline.ml_pipeline import Pipeline, download_pipeline
 
 # Load pipeline
 
-pipeline = Pipeline()
+pipeline: Pipeline | None = None
 
 
 @asynccontextmanager
@@ -27,19 +29,38 @@ async def lifespan(app: FastAPI):
     patch('__main__.Scaler', prep.Scaler, create=True).start()
     patch('__main__.Cleaner', prep.Cleaner, create=True).start()
 
+    # Download pipeline
+    download_path = settings.model_path.replace('.tar.gz', '.joblib')
+    if not os.path.exists(download_path):
+        download_pipeline(
+            settings.bucket_name, settings.model_path, settings.model_path
+        )
+
     # Load pipeline
-    await pipeline.download(
-        settings.bucket_name, settings.model_path, settings.model_path
-    )
-    pipeline.load()
+    pipeline = Pipeline(download_path)
 
     # Start app
     yield
+
+    # Clean up
+    os.remove(download_path)
 
 
 # Set up FastAPI
 
 app = FastAPI(lifespan=lifespan)
+
+origins = [
+    settings.client_origin,
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Define types
 

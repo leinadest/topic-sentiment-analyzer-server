@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,7 +12,8 @@ class Settings(BaseSettings):
     reddit_user_agent: str
     bucket_name: str
     model_path: str
-    google_application_credentials: str
+    google_application_credentials: Optional[str] = None
+    client_origin: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
@@ -20,4 +22,7 @@ settings = Settings()
 
 # Set environment variables
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.google_application_credentials
+if settings.google_application_credentials is not None:
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = (
+        settings.google_application_credentials
+    )

@@ -14,7 +14,7 @@ MENTION_PATTERN = r'@\w+'
 HASHTAG_PATTERN = r'#\w+'
 
 # Load preprocessing parameters
-with open('data/preprocessing_parameters.json', 'r') as stream:
+with open('app/pipeline/preprocessing_parameters.json', 'r') as stream:
     params = json.load(stream)
     slang_dict = params['slang_dict']
     symbol_dict = params['symbol_dict']
