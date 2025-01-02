@@ -1,4 +1,4 @@
-# Social Media Sentiment Analysis Server
+# Topic Sentiment Analyzer Server
 
 ## Description
 
