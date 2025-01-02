@@ -21,6 +21,53 @@ Technologies used:
 
 The frontend server's source code can be found in the [topic-sentiment-analyzer-client](https://github.com/leinadest/topic-sentiment-analyzer-client) repository.
 
+## ML Pipeline
+
+Traditional sentiment analysis using Term Frequency-Inverse Document Frequency (TF-IDF) vectorization followed by a Support Vector Machine (SVM) classifier. Training was done on 58k Reddit comments from the GoEmotions dataset. The pipeline can be recreated by following notebook installation instructions and then running the `/notebooks/ml_workflow.ipynb` notebook.
+
+The pipeline's performance is as follows:
+
+|              | Score    | Support |
+|--------------|----------|---------|
+| Accuracy     | 0.59     | 11027   |
+
+| Emotion   | Precision | Recall | F1-Score | Support |
+|-----------|-----------|--------|----------|---------|
+| Happy     | 0.71      | 0.72   | 0.72     | 3054    |
+| Sad       | 0.25      | 0.50   | 0.34     | 680     |
+| Angry     | 0.41      | 0.44   | 0.43     | 1764    |
+| Scared    | 0.24      | 0.43   | 0.31     | 190     |
+| Neutral   | 0.73      | 0.59   | 0.65     | 5339    |
+
+| Average      | Precision | Recall | F1-Score | Support |
+|--------------|-----------|--------|----------|---------|
+| Macro Avg    | 0.47      | 0.54   | 0.49     | 11027   |
+| Weighted Avg | 0.63      | 0.59   | 0.61     | 11027   |
+
+## Notebook Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/leinadest/topic-sentiment-analyzer-server.git
+   ```
+
+2. Install notebook dependencies:
+
+   ```bash
+   make setup
+   make notebook_setup
+   ```
+
+3. Env file:
+
+   ```bash
+   # .env
+
+   # Notebook mlflow
+   TRACKING_URI=https://example-tracking-server.us-central1.run.app
+   ```
+
 ## Data Flow
 
 ```mermaid
@@ -65,7 +112,7 @@ graph TD
 
 5. **Response to User**: The FastAPI server sends the inference results back to the client Nginx server, which then relays the response to the user's frontend.
 
-## Installation
+## Development Installation
 
 1. Clone the repository:
 
@@ -80,32 +127,23 @@ graph TD
    make setup
    ```
 
-3. Install notebook dependencies (optional):
-
-   ```bash
-   make notebook_setup
-   ```
-
-4. Env file:
+3. Env file:
 
    ```bash
    # .env
 
-    # Notebook mlflow (optional)
-    TRACKING_URI=https://example-tracking-server.us-central1.run.app
+   # GCS
+   GOOGLE_APPLICATION_CREDENTIALS=secrets/example-storage-object-viewer-key.json
+   BUCKET_NAME=example-mlflow-artifacts-store
+   MODEL_PATH=example-pipeline.tar.gz
 
-    # GCS
-    GOOGLE_APPLICATION_CREDENTIALS=secrets/example-storage-object-viewer-key.json
-    BUCKET_NAME=example-mlflow-artifacts-store
-    MODEL_PATH=example-pipeline.tar.gz
+   # Reddit
+   REDDIT_CLIENT_ID=example-client-id
+   REDDIT_CLIENT_SECRET=example-client-secret
+   REDDIT_USER_AGENT=example-user-agent
 
-    # Reddit
-    REDDIT_CLIENT_ID=example-client-id
-    REDDIT_CLIENT_SECRET=example-client-secret
-    REDDIT_USER_AGENT=example-user-agent
-
-    # Client
-    CLIENT_ORIGIN=http://localhost:5173
+   # Client
+   CLIENT_ORIGIN=http://localhost:5173
    ```
 
 ## Usage

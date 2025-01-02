@@ -6,8 +6,8 @@ from app.scraper_service import ScraperService
 
 @pytest.mark.asyncio
 async def test_get_comments():
-    query = 'apple'
-    time = 'week'
+    query = 'a'
+    time = 'all'
 
     scraper_service = ScraperService(
         settings.reddit_client_id,
