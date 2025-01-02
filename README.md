@@ -4,36 +4,135 @@
 
 This server analyzes social media sentiment for a given text by scraping Reddit comments and running sentiment analysis using a machine learning pipeline.
 
-## Table of Contents
+Features include:
 
-- [Project Overview](#project-overview)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Dependencies](#dependencies)
-- [License](#license)
+- Jupyter notebook with the ML workflow (data prep, model training, etc.)
+- FastAPI for scraping Reddit API and running sentiment analysis
 
-## Project Overview
+Technologies used:
 
-The project uses Python's [FastAPI](https://fastapi.tiangolo.com/) framework to create a web application.
+- Python
+- Scikit-learn
+- MLflow
+- Google Cloud Storage
+- FastAPI
+- Pytest
+- Docker
 
+The frontend server's source code can be found in the [topic-sentiment-analyzer-client](https://github.com/leinadest/topic-sentiment-analyzer-client) repository.
+
+## Data Flow
+
+```mermaid
+graph TD
+    %% Entities
+    A[User]
+    B[Nginx Server]
+    C[FastAPI Server]
+    D["Google Cloud Storage (GCS)"]
+    E[Reddit API]
+
+    subgraph "Google Cloud"
+        B
+        C
+        D
+    end
+
+    %% Frontend
+    A -->|User Requests Frontend| B
+    B -->|Serves Static Production Build| A
+    A -->|User Sends POST Request with Query Data| B
+    B -->|Request Forwarding| C
+
+    %% Backend
+    C -->|Downloads Pre-trained ML Pipeline| D
+    C -->|Scrapes Data from Reddit| E
+    C -->|Sends Sentiment Analysis Results| B
+    B -->|Relays Response to Frontend| A
 ```
-my-fastapi-ml-project/
-│
-├── app/
-│   ├── main.py               # FastAPI app entry point
-│   ├── ml_model.py           # Code for loading the ML model and running inference
-│   └── scraper.py            # Code for scraping data (could be a wrapper for the API)
-│
-├── notebooks/
-│   └── ml_workflow.ipynb     # Jupyter notebook with the ML workflow (data prep, model training, etc.)
-│
-├── requirements.txt          # List of Python dependencies
-├── Dockerfile                # Docker setup for containerization
-├── README.md                 # Project documentation
-├── .gitignore                # Git ignore file
-└── tests/                    # Test folder for unit tests
-    ├── test_main.py          # FastAPI endpoint tests
-    └── test_ml_model.py      # Tests for the ML model inference logic
-```
+
+1. **User Requests Frontend**: The user accesses the frontend via a Nginx cloud run server, which serves a static production build of the frontend.
+
+2. **User Sends Data**: The user submits a POST request with query data to the Nginx server.
+
+3. **Request Forwarding**: The Nginx server acts as a reverse proxy, forwarding the request to the backend FastAPI cloud run server (this repository) for processing.
+
+4. **Backend Processing**: The FastAPI server performs several tasks:
+
+   1. Downloads a pre-trained machine learning pipeline from Google Cloud Storage (GCS).
+   2. Scrapes data from Reddit using the asyncpraw library.
+   3. Runs the pipeline's sentiment analysis on the scraped data.
+
+5. **Response to User**: The FastAPI server sends the inference results back to the client Nginx server, which then relays the response to the user's frontend.
 
 ## Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/leinadest/topic-sentiment-analyzer-server.git
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   cd topic-sentiment-analyzer-server
+   make setup
+   ```
+
+3. Install notebook dependencies (optional):
+
+   ```bash
+   make notebook_setup
+   ```
+
+4. Env file:
+
+   ```bash
+   # .env
+
+    # Notebook mlflow (optional)
+    TRACKING_URI=https://example-tracking-server.us-central1.run.app
+
+    # GCS
+    GOOGLE_APPLICATION_CREDENTIALS=secrets/example-storage-object-viewer-key.json
+    BUCKET_NAME=example-mlflow-artifacts-store
+    MODEL_PATH=example-pipeline.tar.gz
+
+    # Reddit
+    REDDIT_CLIENT_ID=example-client-id
+    REDDIT_CLIENT_SECRET=example-client-secret
+    REDDIT_USER_AGENT=example-user-agent
+
+    # Client
+    CLIENT_ORIGIN=http://localhost:5173
+   ```
+
+## Usage
+
+1. Run the developmental server:
+
+   ```bash
+   cd topic-sentiment-analyzer-server
+   make dev
+   ```
+
+2. Access the server's development interface at http://localhost:8000/docs.
+
+3. Run quality checks:
+
+   ```bash
+   make quality_checks
+   ```
+
+4. Run tests:
+
+   ```bash
+   make test
+   ```
+
+## Deployment
+
+The project is deployed on Google Cloud Run and is accessible at the following link:
+
+[Live Demo](https://topic-sentiment-analyzer-client-148621174923.us-central1.run.app/)
