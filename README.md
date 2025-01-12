@@ -1,5 +1,7 @@
 # Topic Sentiment Analyzer Server
 
+![App Screenshot](https://i.imgur.com/HgJjDk4.png)
+
 ## Description
 
 This server analyzes social media sentiment for a given text by scraping Reddit comments and running sentiment analysis using a machine learning pipeline.
